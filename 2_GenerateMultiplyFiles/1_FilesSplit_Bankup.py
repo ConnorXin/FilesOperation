@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-# @time    : 2023/9/6 10:06
-# @author  : w-xin
-# @file    : 1_FilesSplit.py
-# @software: PyCharm
+# @Author  :  connor
+# @Time    :  2023/9/6 13:44
+# @File    :  1_FilesSplit_Bankup.py
+# @IDE     :  PyCharm
 
 """
-根据总表数据按行数分割成多个 word 文书和 excel
 """
 import docx
 import xlrd
@@ -119,4 +118,3 @@ if __name__ == '__main__':
                 row += rows
         else:
             pd.concat(iv).to_excel(f'文书-{ik}.xls', index=False, engine='openpyxl')
-
