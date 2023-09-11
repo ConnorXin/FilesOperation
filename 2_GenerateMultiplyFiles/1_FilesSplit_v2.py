@@ -193,37 +193,41 @@ if __name__ == '__main__':
 
     folders = [file for file in os.listdir('./') if '.' not in file]
     for folder in folders:
-        data = []
-        df_acc = []
-        no = 1
-        bankcard_sum = sum([int(file.split('-')[2].split('张')[0]) for file in os.listdir(f'./{folder}') if '文书附件' in file])
-        for d in os.listdir(f'./{folder}'):
-            if '文书附件' in d:
-                doc = docx.Document(f'./{folder}/{d}')
-                obj_figure = re.compile(r'\d+', re.S)
-                accounts = [acc.text for acc in doc.paragraphs][1].split('，')
-                bankName = [acc.text for acc in doc.paragraphs][0].split('：')[1].split('-')[0]
-                try:
-                    bankName = bankName.replace(obj_figure.search(bankName).group(), '')
-                except:
-                    pass
-                for acc in accounts:
-                    temp = df.loc[df['被查账/卡号'] == acc]
-                    df_acc += [temp]
+        try:
+            test = int(folder)
+            data = []
+            df_acc = []
+            no = 1
+            bankcard_sum = sum([int(file.split('-')[2].split('张')[0]) for file in os.listdir(f'./{folder}') if '文书附件' in file])
+            for d in os.listdir(f'./{folder}'):
+                if '文书附件' in d:
+                    doc = docx.Document(f'./{folder}/{d}')
+                    obj_figure = re.compile(r'\d+', re.S)
+                    accounts = [acc.text for acc in doc.paragraphs][1].split('，')
+                    bankName = [acc.text for acc in doc.paragraphs][0].split('：')[1].split('-')[0]
+                    try:
+                        bankName = bankName.replace(obj_figure.search(bankName).group(), '')
+                    except:
+                        pass
+                    for acc in accounts:
+                        temp = df.loc[df['被查账/卡号'] == acc]
+                        df_acc += [temp]
 
-                if len(accounts) <= 10:
-                    accountsStr = ','.join(accounts)
-                    data.append({'no': no, 'bankName': bankName, 'cardNo': accountsStr})
-                    no += 1
-                else:
-                    data.append({'no': no, 'bankName': bankName,
-                                 'cardNo': f"{accounts[0]}等{len(accounts)}个涉案账户，详见相关账户表"})
-                    no += 1
-        # data.append({'bankNum': no, 'accountNum': bankcard_sum})
-        pd.concat(df_acc).to_excel(f'./{folder}/待调单-{folder}.xls', index=False, engine='openpyxl')
-        dataApply = {'items': data, 'bankNum': no - 1, 'accountNum': bankcard_sum}
-        tpl = DocxTemplate('./采取查询手段申请表_模板.docx')
-        for idx, d in enumerate([dataApply]):
-            context = d
-            tpl.render(context)
-            tpl.save(f'./{folder}/采取查询手段申请表{folder}.docx')
+                    if len(accounts) <= 10:
+                        accountsStr = ','.join(accounts)
+                        data.append({'no': no, 'bankName': bankName, 'cardNo': accountsStr})
+                        no += 1
+                    else:
+                        data.append({'no': no, 'bankName': bankName,
+                                     'cardNo': f"{accounts[0]}等{len(accounts)}个涉案账户，详见相关账户表"})
+                        no += 1
+            # data.append({'bankNum': no, 'accountNum': bankcard_sum})
+            pd.concat(df_acc).to_excel(f'./{folder}/待调单-{folder}.xls', index=False, engine='openpyxl')
+            dataApply = {'items': data, 'bankNum': no - 1, 'accountNum': bankcard_sum}
+            tpl = DocxTemplate('./采取查询手段申请表_模板.docx')
+            for idx, d in enumerate([dataApply]):
+                context = d
+                tpl.render(context)
+                tpl.save(f'./{folder}/采取查询手段申请表{folder}.docx')
+        except Exception as e:
+            print('error: ' + str(e) + '或\'' + folder + '\'文件夹错误')
